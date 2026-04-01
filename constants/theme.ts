@@ -1,58 +1,73 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- * 
-*/
-
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
-
-export const Colors = {
-  light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
-  },
-  dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
-  },
+export type ThemeColors = {
+  background: string;
+  surface: string;
+  surfaceElevated: string;
+  accent: string;
+  accentMuted: string;
+  levelBadge: string;
+  progressFill: string;
+  textPrimary: string;
+  textSecondary: string;
+  locked: string;
+  lockedIcon: string;
+  lockedBorder: string;
+  tabBar: string;
+  tabBarBorder: string;
+  completed: string;
+  completedMuted: string;
+  border: string;
 };
 
-export const AppColors = {
+export const LightColors: ThemeColors = {
+  background: '#FAF8F5',
+  surface: '#FFFFFF',
+  surfaceElevated: '#F5F0EB',
+  accent: '#6366F1',
+  accentMuted: 'rgba(99,102,241,0.10)',
+  levelBadge: '#7C3AED',
+  progressFill: '#10B981',
+  textPrimary: '#1C1917',
+  textSecondary: '#78716C',
+  locked: '#EDE9E3',
+  lockedIcon: '#A8A29E',
+  lockedBorder: '#D6D0C8',
+  tabBar: '#FFFFFF',
+  tabBarBorder: '#E7E5E4',
+  completed: '#16A34A',
+  completedMuted: 'rgba(22,163,74,0.10)',
+  border: '#E7E5E4',
+};
+
+export const DarkColors: ThemeColors = {
   background: '#1a1a2e',
   surface: '#16213e',
   surfaceElevated: '#0f3460',
-  accent: '#FF6B35',
-  accentMuted: 'rgba(255,107,53,0.15)',
-  levelBadge: '#e94560',
+  accent: '#818CF8',
+  accentMuted: 'rgba(129,140,248,0.15)',
+  levelBadge: '#A78BFA',
   progressFill: '#4ecca3',
   textPrimary: '#eaeaea',
   textSecondary: '#8892b0',
   locked: '#2d2d44',
   lockedIcon: '#555577',
+  lockedBorder: '#3a3a5a',
   tabBar: '#0d0d1a',
   tabBarBorder: '#1e1e3a',
+  completed: '#4ade80',
+  completedMuted: 'rgba(74,222,128,0.12)',
+  border: '#1e2a4a',
 };
+
+// Legacy alias for any code not yet migrated to useAppTheme()
+export const AppColors = DarkColors;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {

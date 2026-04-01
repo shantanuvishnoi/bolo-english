@@ -3,19 +3,21 @@ import { Tabs } from 'expo-router';
 import { CenterTabIcon } from '@/components/center-tab-icon';
 import { HapticTab } from '@/components/haptic-tab';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { AppColors } from '@/constants/theme';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function TabLayout() {
+  const { colors } = useAppTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarButton: HapticTab,
-        tabBarActiveTintColor: AppColors.accent,
-        tabBarInactiveTintColor: AppColors.textSecondary,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: AppColors.tabBar,
-          borderTopColor: AppColors.tabBarBorder,
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.tabBarBorder,
           height: 64,
         },
         tabBarLabelStyle: {

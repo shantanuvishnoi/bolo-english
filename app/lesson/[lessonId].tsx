@@ -1,46 +1,69 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import * as Speech from 'expo-speech';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppColors } from '@/constants/theme';
+import { ProgressBar } from '@/components/progress-bar';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAppTheme } from '@/context/theme-context';
+import { useProgress } from '@/context/progress-context';
+import { LESSON_SENTENCES, getLessonById } from '@/constants/lessons';
 
-// Placeholder sentence data — Phase 2 will load from data/lessons.ts
-const LESSON_SENTENCES: Record<string, { hindi: string; english: string }[]> = {
-  l1: [
-    { hindi: 'Mera naam John hai.', english: 'My name is John.' },
-    { hindi: 'Main India se hoon.', english: 'I am from India.' },
-    { hindi: 'Mujhe English seekhna hai.', english: 'I want to learn English.' },
-    { hindi: 'Aap kaise hain?', english: 'How are you?' },
-    { hindi: 'Main theek hoon.', english: 'I am fine.' },
-  ],
-  l2: [
-    { hindi: 'Mere paas ek bhai hai.', english: 'I have one brother.' },
-    { hindi: 'Meri maa ghar par hain.', english: 'My mother is at home.' },
-    { hindi: 'Hamara parivaar chota hai.', english: 'Our family is small.' },
-  ],
-  l3: [
-    { hindi: 'Main ek teacher hoon.', english: 'I am a teacher.' },
-    { hindi: 'Main office mein kaam karta hoon.', english: 'I work in an office.' },
-  ],
+const SPEECH_OPTIONS: Speech.SpeechOptions = {
+  language: 'en-IN',
+  rate: 0.8,
+  pitch: 1.0,
 };
 
 export default function LessonScreen() {
   const { lessonId } = useLocalSearchParams<{ lessonId: string }>();
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const { markLessonComplete } = useProgress();
+  const insets = useSafeAreaInsets();
+
+  const lessonMeta = getLessonById(lessonId);
   const sentences = LESSON_SENTENCES[lessonId] ?? [];
   const [currentIndex, setCurrentIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
 
   const current = sentences[currentIndex];
   const isLast = currentIndex === sentences.length - 1;
 
+  const speak = useCallback(
+    (text: string) => {
+      Speech.stop();
+      setIsSpeaking(true);
+      Speech.speak(text, {
+        ...SPEECH_OPTIONS,
+        onDone: () => setIsSpeaking(false),
+        onStopped: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false),
+      });
+    },
+    [],
+  );
+
+  // Stop speech when screen unmounts
+  useEffect(() => {
+    return () => {
+      Speech.stop();
+    };
+  }, []);
+
   function handleReveal() {
     setRevealed(true);
+    speak(current.english);
   }
 
   function handleNext() {
+    Speech.stop();
+    setIsSpeaking(false);
     if (isLast) {
+      markLessonComplete(lessonId);
       router.back();
       return;
     }
@@ -50,107 +73,159 @@ export default function LessonScreen() {
 
   if (!current) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>Lesson not found.</Text>
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <Text style={[styles.errorText, { color: colors.textSecondary }]}>Lesson not found.</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.progressDots}>
-        {sentences.map((_, i) => (
-          <View
-            key={i}
-            style={[styles.dot, i < currentIndex && styles.dotDone, i === currentIndex && styles.dotActive]}
-          />
-        ))}
-      </View>
+    <>
+      <Stack.Screen options={{ title: lessonMeta?.title ?? lessonId }} />
 
-      <Animated.View key={currentIndex} entering={FadeIn.duration(300)} exiting={FadeOut.duration(200)} style={styles.card}>
-        <Text style={styles.hindiText}>{current.hindi}</Text>
-
-        {revealed ? (
-          <Animated.Text entering={FadeIn.duration(250)} style={styles.englishText}>
-            {current.english}
-          </Animated.Text>
-        ) : (
-          <Pressable style={styles.revealButton} onPress={handleReveal}>
-            <Text style={styles.revealText}>Tap to reveal</Text>
-          </Pressable>
-        )}
-      </Animated.View>
-
-      <Pressable
-        style={({ pressed }) => [styles.nextButton, !revealed && styles.nextDisabled, pressed && styles.nextPressed]}
-        onPress={handleNext}
-        disabled={!revealed}
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor: colors.background,
+            paddingBottom: Math.max(insets.bottom + 16, 32),
+          },
+        ]}
       >
-        <Text style={styles.nextText}>{isLast ? 'Finish Lesson ✓' : 'Next →'}</Text>
-      </Pressable>
-    </View>
+        {/* Progress bar */}
+        <View style={styles.progressSection}>
+          <ProgressBar
+            value={currentIndex + 1}
+            max={sentences.length}
+            color={colors.accent}
+            showLabel={false}
+            height={6}
+          />
+          <Text style={[styles.progressCount, { color: colors.textSecondary }]}>
+            {currentIndex + 1}/{sentences.length}
+          </Text>
+        </View>
+
+        {/* Sentence card */}
+        <Animated.View
+          key={currentIndex}
+          entering={FadeIn.duration(300)}
+          exiting={FadeOut.duration(200)}
+          style={styles.card}
+        >
+          <Text style={[styles.hindiText, { color: colors.textPrimary }]}>{current.hindi}</Text>
+
+          {revealed ? (
+            <View style={styles.englishRow}>
+              <Text style={[styles.englishText, { color: colors.progressFill, flex: 1 }]}>
+                {current.english}
+              </Text>
+              <Pressable
+                onPress={() => speak(current.english)}
+                style={[
+                  styles.speakerButton,
+                  {
+                    backgroundColor: isSpeaking ? colors.accentMuted : colors.surfaceElevated,
+                  },
+                ]}
+                hitSlop={8}
+              >
+                <IconSymbol
+                  name="speaker.wave.2.fill"
+                  size={20}
+                  color={isSpeaking ? colors.accent : colors.textSecondary}
+                />
+              </Pressable>
+            </View>
+          ) : (
+            <Pressable
+              style={[styles.revealButton, { borderColor: colors.accent }]}
+              onPress={handleReveal}
+            >
+              <Text style={[styles.revealText, { color: colors.accent }]}>Tap to reveal</Text>
+            </Pressable>
+          )}
+        </Animated.View>
+
+        {/* Next / Finish button */}
+        <Pressable
+          style={({ pressed }) => [
+            styles.nextButton,
+            { backgroundColor: colors.accent },
+            !revealed && styles.nextDisabled,
+            pressed && styles.nextPressed,
+          ]}
+          onPress={handleNext}
+          disabled={!revealed}
+        >
+          <Text style={styles.nextText}>{isLast ? 'Finish Lesson ✓' : 'Next →'}</Text>
+        </Pressable>
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: AppColors.background,
-    padding: 24,
+    paddingHorizontal: 28,
+    paddingTop: 16,
     justifyContent: 'space-between',
   },
-  progressDots: {
+  progressSection: {
     flexDirection: 'row',
-    gap: 6,
-    justifyContent: 'center',
-    paddingTop: 8,
+    alignItems: 'center',
+    gap: 10,
   },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#2a2a4a',
-  },
-  dotDone: {
-    backgroundColor: AppColors.progressFill,
-  },
-  dotActive: {
-    backgroundColor: AppColors.accent,
-    width: 20,
+  progressCount: {
+    fontSize: 12,
+    minWidth: 36,
+    textAlign: 'right',
   },
   card: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     gap: 32,
+    paddingHorizontal: 8,
   },
   hindiText: {
-    color: AppColors.textPrimary,
     fontSize: 28,
     fontWeight: '700',
     textAlign: 'center',
     lineHeight: 38,
   },
+  englishRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 4,
+  },
   englishText: {
-    color: AppColors.progressFill,
     fontSize: 20,
     fontWeight: '600',
     textAlign: 'center',
+    lineHeight: 28,
+  },
+  speakerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
   },
   revealButton: {
     borderWidth: 1,
-    borderColor: AppColors.accent,
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
   },
   revealText: {
-    color: AppColors.accent,
     fontSize: 15,
     fontWeight: '600',
   },
   nextButton: {
-    backgroundColor: AppColors.accent,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
@@ -168,7 +243,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   errorText: {
-    color: AppColors.textSecondary,
     fontSize: 16,
     textAlign: 'center',
   },

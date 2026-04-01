@@ -1,7 +1,7 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppColors } from '@/constants/theme';
 import { ProgressBar } from '@/components/progress-bar';
+import { useAppTheme } from '@/context/theme-context';
 
 interface LevelProgressHeaderProps {
   currentLevel: number;
@@ -14,17 +14,43 @@ export function LevelProgressHeader({
   completedSentences,
   requiredSentences,
 }: LevelProgressHeaderProps) {
+  const { colors, isDark, toggleTheme } = useAppTheme();
   const remaining = Math.max(requiredSentences - completedSentences, 0);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.levelLabel}>LEVEL {currentLevel}</Text>
-      <Text style={styles.subtitle}>Apna introduction do</Text>
-      <Text style={styles.hint}>
-        {remaining} aur sentences seekho level {currentLevel + 1} tak pahunchne ke liye
+      <View style={styles.titleRow}>
+        <Text
+          style={[styles.title, { color: colors.textPrimary }]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+        >
+          Welcome to Bolo English
+        </Text>
+        <Pressable
+          onPress={toggleTheme}
+          style={[styles.themeToggle, { backgroundColor: colors.surfaceElevated }]}
+          hitSlop={8}
+        >
+          <Text style={styles.themeIcon}>{isDark ? '☀️' : '🌙'}</Text>
+        </Pressable>
+      </View>
+
+      <Text style={[styles.hint, { color: colors.textSecondary }]}>
+        {remaining} sentences remaining to reach Level {currentLevel + 1}
       </Text>
+
       <View style={styles.progressRow}>
-        <ProgressBar value={completedSentences} max={requiredSentences} />
+        <ProgressBar
+          value={completedSentences}
+          max={requiredSentences}
+          color={colors.progressFill}
+          showLabel={false}
+          height={10}
+        />
+        <Text style={[styles.progressLabel, { color: colors.textSecondary }]}>
+          {completedSentences}/{requiredSentences}
+        </Text>
       </View>
     </View>
   );
@@ -32,30 +58,48 @@ export function LevelProgressHeader({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 16,
+    paddingBottom: 20,
   },
-  levelLabel: {
-    color: AppColors.levelBadge,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: 4,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    gap: 12,
   },
-  subtitle: {
-    color: AppColors.textPrimary,
-    fontSize: 20,
+  title: {
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 6,
+    flex: 1,
+    lineHeight: 28,
+  },
+  themeToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+    marginTop: 2,
+  },
+  themeIcon: {
+    fontSize: 16,
   },
   hint: {
-    color: AppColors.textSecondary,
     fontSize: 13,
-    marginBottom: 10,
+    marginBottom: 12,
     lineHeight: 18,
   },
   progressRow: {
-    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  progressLabel: {
+    fontSize: 12,
+    minWidth: 44,
+    textAlign: 'right',
   },
 });

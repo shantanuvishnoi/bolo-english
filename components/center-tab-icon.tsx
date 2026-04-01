@@ -2,13 +2,22 @@ import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import * as Haptics from 'expo-haptics';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { AppColors } from '@/constants/theme';
+import { useAppTheme } from '@/context/theme-context';
 
 export function CenterTabIcon(props: BottomTabBarButtonProps) {
+  const { colors } = useAppTheme();
+
   return (
     <View style={styles.wrapper}>
       <Pressable
-        style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+        style={({ pressed }) => [
+          styles.button,
+          {
+            backgroundColor: colors.accent,
+            shadowColor: colors.accent,
+          },
+          pressed && styles.pressed,
+        ]}
         onPress={(e) => {
           if (process.env.EXPO_OS === 'ios') {
             Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -34,11 +43,9 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: AppColors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     transform: [{ translateY: -12 }],
-    shadowColor: AppColors.accent,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.5,
     shadowRadius: 8,

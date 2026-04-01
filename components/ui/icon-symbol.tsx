@@ -25,6 +25,7 @@ const MAPPING = {
   'gift.fill': 'card-giftcard',
   'lock.fill': 'lock',
   'checkmark.circle': 'check-circle',
+  'speaker.wave.2.fill': 'volume-up',
 } as IconMapping;
 
 /**

@@ -7,13 +7,14 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 
-import { AppColors } from '@/constants/theme';
+import { useAppTheme } from '@/context/theme-context';
 
 interface SurpriseGiftButtonProps {
   onPress?: () => void;
 }
 
 export function SurpriseGiftButton({ onPress }: SurpriseGiftButtonProps) {
+  const { colors } = useAppTheme();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -35,7 +36,16 @@ export function SurpriseGiftButton({ onPress }: SurpriseGiftButtonProps) {
       entering={FadeInRight.delay(400).springify()}
       style={[styles.container, animatedStyle]}
     >
-      <Pressable style={styles.button} onPress={handlePress}>
+      <Pressable
+        style={[
+          styles.button,
+          {
+            backgroundColor: colors.levelBadge,
+            shadowColor: colors.levelBadge,
+          },
+        ]}
+        onPress={handlePress}
+      >
         <Text style={styles.emoji}>🎁</Text>
         <Text style={styles.label}>Surprise Gift</Text>
       </Pressable>
@@ -53,14 +63,12 @@ const styles = StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: AppColors.levelBadge,
     borderRadius: 24,
     paddingHorizontal: 16,
     paddingVertical: 10,
     gap: 6,
-    shadowColor: AppColors.levelBadge,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.35,
     shadowRadius: 8,
     elevation: 6,
   },

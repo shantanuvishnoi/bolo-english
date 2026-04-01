@@ -1,15 +1,18 @@
 import { Stack } from 'expo-router';
 
-import { AppColors } from '@/constants/theme';
+import { useAppTheme } from '@/context/theme-context';
 
 export default function LessonLayout() {
+  const { colors } = useAppTheme();
+
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: AppColors.background },
-        headerTintColor: AppColors.textPrimary,
-        headerTitleStyle: { fontWeight: '700' },
-        contentStyle: { backgroundColor: AppColors.background },
+        headerStyle: { backgroundColor: colors.background },
+        headerTintColor: colors.accent,
+        headerTitleStyle: { fontWeight: '700', color: colors.textPrimary },
+        contentStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
       }}
     />
   );

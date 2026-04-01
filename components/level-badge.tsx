@@ -1,7 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { AppColors } from '@/constants/theme';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { useAppTheme } from '@/context/theme-context';
 
 interface LevelBadgeProps {
   level: number;
@@ -9,12 +9,19 @@ interface LevelBadgeProps {
 }
 
 export function LevelBadge({ level, locked = false }: LevelBadgeProps) {
+  const { colors } = useAppTheme();
+
   return (
-    <View style={[styles.container, locked && styles.lockedContainer]}>
+    <View
+      style={[
+        styles.container,
+        { backgroundColor: locked ? colors.locked : colors.levelBadge },
+      ]}
+    >
       {locked && (
-        <IconSymbol name="lock.fill" size={12} color={AppColors.lockedIcon} />
+        <IconSymbol name="lock.fill" size={12} color={colors.lockedIcon} />
       )}
-      <Text style={[styles.text, locked && styles.lockedText]}>
+      <Text style={[styles.text, { color: locked ? colors.lockedIcon : '#fff' }]}>
         LEVEL {level}
       </Text>
     </View>
@@ -26,23 +33,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
-    backgroundColor: AppColors.levelBadge,
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 4,
     gap: 4,
     marginBottom: 12,
   },
-  lockedContainer: {
-    backgroundColor: AppColors.locked,
-  },
   text: {
-    color: '#fff',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
-  },
-  lockedText: {
-    color: AppColors.lockedIcon,
   },
 });
