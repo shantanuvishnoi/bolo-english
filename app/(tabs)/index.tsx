@@ -11,22 +11,12 @@ import { LevelCompleteModal } from '@/components/level-complete-modal';
 import { SurpriseGiftButton } from '@/components/surprise-gift-button';
 import { useAppTheme } from '@/context/theme-context';
 import { useProgress } from '@/context/progress-context';
+import { getLessonsByLevel } from '@/constants/lessons';
 
-// Static data for Phase 1 — will be replaced with real data in Phase 2
-const LEVELS = [
-  {
-    id: 1,
-    lessons: [
-      { id: 'l1', title: 'Apna introduction do', subtitle: 'Reading', completed: 5, total: 18 },
-      { id: 'l2', title: 'Family ke baare mein batao', subtitle: 'Reading', completed: 0, total: 18 },
-      { id: 'l3', title: 'Apna kaam batao', subtitle: 'Speaking', completed: 0, total: 19 },
-    ],
-  },
-  { id: 2, lessons: [] },
-  { id: 3, lessons: [] },
-];
+const LEVEL_IDS = [1, 2, 3];
 
-const TOTAL_REQUIRED = 55;
+// Total sentences in Level 1 — used for the top progress bar
+const LEVEL1_REQUIRED = getLessonsByLevel(1).reduce((sum, l) => sum + l.total, 0);
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -37,32 +27,34 @@ export default function HomeScreen() {
 
   const [celebratingLevel, setCelebratingLevel] = useState<number | null>(null);
 
-  // Derive which levels are unlocked
-  const levelsWithLockState = LEVELS.map((level, idx) => {
-    if (idx === 0) return { ...level, locked: false };
-    const prevLevel = LEVELS[idx - 1];
+  // Build levels with dynamic lock state, sourced entirely from constants/lessons.ts
+  const levels = LEVEL_IDS.map((levelId, idx) => {
+    const lessons = getLessonsByLevel(levelId);
+    if (idx === 0) return { levelId, lessons, locked: false };
+    const prevLessons = getLessonsByLevel(LEVEL_IDS[idx - 1]);
     const prevComplete =
-      prevLevel.lessons.length > 0 &&
-      prevLevel.lessons.every((l) => isLessonComplete(l.id));
-    return { ...level, locked: !prevComplete };
+      prevLessons.length > 0 && prevLessons.every((l) => isLessonComplete(l.id));
+    return { levelId, lessons, locked: !prevComplete };
   });
 
-  // Detect level completion and trigger confetti (only once per level)
+  // Trigger confetti once per level when all its lessons are done
   useEffect(() => {
-    for (const level of LEVELS) {
-      if (level.lessons.length === 0) continue;
-      const allDone = level.lessons.every((l) => isLessonComplete(l.id));
-      if (allDone && !celebratedLevels.includes(level.id)) {
-        setCelebratingLevel(level.id);
+    for (const { levelId, lessons } of levels) {
+      if (lessons.length === 0) continue;
+      const allDone = lessons.every((l) => isLessonComplete(l.id));
+      if (allDone && !celebratedLevels.includes(levelId)) {
+        setCelebratingLevel(levelId);
         break;
       }
     }
   }, [totalCompletedSentences, celebratedLevels]);
 
-  const completedSentences = Math.max(
-    totalCompletedSentences,
-    LEVELS[0].lessons.reduce((sum, l) => sum + l.completed, 0),
+  // Level 1 progress: use persisted total, fall back to seed values
+  const level1SeedCompleted = getLessonsByLevel(1).reduce(
+    (sum, l) => sum + (isLessonComplete(l.id) ? l.total : l.seedCompleted),
+    0,
   );
+  const completedSentences = Math.max(totalCompletedSentences, level1SeedCompleted);
 
   function handleLessonPress(lessonId: string) {
     router.push(`/lesson/${lessonId}`);
@@ -85,22 +77,22 @@ export default function HomeScreen() {
         <LevelProgressHeader
           currentLevel={1}
           completedSentences={completedSentences}
-          requiredSentences={TOTAL_REQUIRED}
+          requiredSentences={LEVEL1_REQUIRED}
         />
 
-        {levelsWithLockState.map((level) => (
-          <View key={level.id} style={styles.section}>
-            <LevelBadge level={level.id} locked={level.locked} />
-            {level.locked ? (
+        {levels.map(({ levelId, lessons, locked }) => (
+          <View key={levelId} style={styles.section}>
+            <LevelBadge level={levelId} locked={locked} />
+            {locked ? (
               <LockedCard />
             ) : (
-              level.lessons.map((lesson, idx) => (
+              lessons.map((lesson, idx) => (
                 <LessonCard
                   key={lesson.id}
                   title={lesson.title}
                   subtitle={lesson.subtitle}
                   completedSentences={
-                    isLessonComplete(lesson.id) ? lesson.total : lesson.completed
+                    isLessonComplete(lesson.id) ? lesson.total : lesson.seedCompleted
                   }
                   totalSentences={lesson.total}
                   isCompleted={isLessonComplete(lesson.id)}
@@ -127,20 +119,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  content: {
-    paddingBottom: 20,
-  },
-  section: {
-    paddingHorizontal: 24,
-    marginBottom: 8,
-  },
-  bottomSpacer: {
-    height: 80,
-  },
+  root: { flex: 1 },
+  scroll: { flex: 1 },
+  content: { paddingBottom: 20 },
+  section: { paddingHorizontal: 24, marginBottom: 8 },
+  bottomSpacer: { height: 80 },
 });

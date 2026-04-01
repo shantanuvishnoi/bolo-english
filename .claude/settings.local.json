@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx expo:*)"
+      "Bash(npx expo:*)",
+      "Bash(node scripts/generate-sounds.js)",
+      "Bash(dir C:\\\\Users\\\\Shantanu\\\\Desktop\\\\apps\\\\bolo-english\\\\assets\\\\sounds:*)",
+      "Bash(node:*)",
+      "Read(//c/Users/Shantanu/Desktop/apps/**)",
+      "Bash(npx create-next-app@latest bolo-english-web --typescript --tailwind --app --yes)",
+      "Bash(dir C:\\\\Users\\\\Shantanu\\\\Desktop\\\\apps\\\\bolo-english-web\\\\app:*)",
+      "Bash(cmd:*)",
+      "Bash(npm run:*)"
     ]
   }
 }
