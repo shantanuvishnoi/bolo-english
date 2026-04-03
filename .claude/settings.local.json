@@ -9,7 +9,18 @@
       "Bash(npx create-next-app@latest bolo-english-web --typescript --tailwind --app --yes)",
       "Bash(dir C:\\\\Users\\\\Shantanu\\\\Desktop\\\\apps\\\\bolo-english-web\\\\app:*)",
       "Bash(cmd:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(powershell -NonInteractive -Command \"Set-Location 'C:\\\\Users\\\\Shantanu\\\\Desktop\\\\apps\\\\bolo-english'; New-Item -ItemType Directory -Force -Path 'apps\\\\mobile' | Out-Null; New-Item -ItemType Directory -Force -Path 'apps\\\\web' | Out-Null; 'done' | Out-File -FilePath 'apps\\\\_setup_marker.txt'\")",
+      "Bash(echo \"exit: $?\")",
+      "Bash(powershell -NonInteractive -Command ':*)",
+      "Bash(tee /tmp/gitmv.log)",
+      "Read(//tmp/**)",
+      "Bash(powershell:*)",
+      "Bash(mkdir -p /c/Temp)",
+      "Bash(git add:*)",
+      "Bash(git -C /c/Users/Shantanu/Desktop/apps/bolo-english status --short)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(echo \"EXIT: $?\")"
     ]
   }
 }
